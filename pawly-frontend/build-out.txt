@@ -1,0 +1,31 @@
+Initial chunk files   | Names                      |  Raw size | Estimated transfer size
+chunk-35O5IFIC.js     | -                          | 158.58 kB |                46.41 kB
+chunk-6BUPGP7W.js     | -                          |  78.48 kB |                19.69 kB
+main-XTUGQDKJ.js      | main                       |  63.92 kB |                16.84 kB
+polyfills-FFHMD2TL.js | polyfills                  |  33.71 kB |                11.02 kB
+styles-CM6PRJVL.css   | styles                     |   8.17 kB |                 1.90 kB
+chunk-O3LSR6UD.js     | -                          |   1.23 kB |               519 bytes
+
+                      | Initial total              | 344.09 kB |                96.36 kB
+
+Lazy chunk files      | Names                      |  Raw size | Estimated transfer size
+chunk-SA33YQRJ.js     | -                          |  37.94 kB |                 7.79 kB
+chunk-YJ3OQIDO.js     | vet-profile-component      |  11.67 kB |                 3.57 kB
+chunk-HGQEKWW2.js     | vet-verification-component |   7.90 kB |                 2.60 kB
+chunk-GUAEPDMB.js     | profile-component          |   7.62 kB |                 2.55 kB
+chunk-7DMTZNGB.js     | user-management-component  |   7.03 kB |                 2.35 kB
+chunk-VVVYUZFS.js     | dashboard-component        |   6.06 kB |                 2.11 kB
+chunk-CTDDDXS2.js     | shell-component            |   6.01 kB |                 1.91 kB
+chunk-PZGGJAZZ.js     | register-component         |   5.82 kB |                 1.94 kB
+chunk-NTRZZF5M.js     | pet-form-component         |   5.47 kB |                 2.04 kB
+chunk-CWWLBG4N.js     | pet-list-component         |   4.73 kB |                 1.85 kB
+chunk-CIMSIAIU.js     | login-component            |   4.37 kB |                 1.58 kB
+chunk-EEWFUGI6.js     | notifications-component    |   2.94 kB |                 1.26 kB
+chunk-YLBRS4C6.js     | -                          |   1.14 kB |               433 bytes
+chunk-CDV6WD62.js     | -                          | 807 bytes |               807 bytes
+chunk-WISDQBT6.js     | -                          | 554 bytes |               554 bytes
+
+Output location: C:\Users\acer\Desktop\5eme\ai\projet_petlife\pawly-frontend\dist\pawly-frontend
+
+Application bundle generation complete. [8.608 seconds]
+

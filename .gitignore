@@ -1,0 +1,48 @@
+# ── Secrets ──────────────────────────────────────────────
+ai-pawly/.env
+pawly-backend/src/main/resources/application-local.properties
+
+# ── Kiro IDE ─────────────────────────────────────────────
+.kiro/
+
+# ── Python ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+*.pyc
+
+# ── Node / Angular ────────────────────────────────────────
+pawly-frontend/node_modules/
+pawly-frontend/dist/
+pawly-frontend/.angular/
+
+# ── Java / Maven ──────────────────────────────────────────
+pawly-backend/target/
+pawly-backend/.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+
+# ── IDE ───────────────────────────────────────────────────
+.vscode/
+.idea/
+*.iml
+*.iws
+
+# ── OS ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Misc ─────────────────────────────────────────────────
+*.log
+*.tmp

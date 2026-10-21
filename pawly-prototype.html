@@ -1,0 +1,2387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pawly – User Management & AI Emergency</title>
+<style>
+  /* ─── Reset & Base ─────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #6C63FF;
+    --primary-light: #EEF0FF;
+    --danger: #FF4757;
+    --danger-light: #FFF0F1;
+    --warning: #FF6B35;
+    --warning-light: #FFF4EF;
+    --success: #2ED573;
+    --success-light: #EDFFF5;
+    --neutral: #F4F6FB;
+    --text: #1A1D2E;
+    --text-soft: #6B7A99;
+    --border: #E4E8F0;
+    --white: #FFFFFF;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(108,99,255,.10);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,.07);
+  }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #ECEFFE;
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ─── Layout ─────────────────────────────────────────────────── */
+  .app-shell {
+    display: flex;
+    gap: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ─── Sidebar Nav ────────────────────────────────────────────── */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0 16px;
+    overflow-y: auto;
+  }
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: var(--primary);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .logo-text { font-weight: 700; font-size: 20px; color: var(--primary); }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-soft);
+    padding: 8px 20px 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-soft);
+    cursor: pointer;
+    border-radius: 0;
+    transition: background .15s, color .15s;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: var(--primary-light); color: var(--primary); }
+  .nav-item.active {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .nav-item .nav-icon { font-size: 18px; width: 22px; text-align: center; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 99px;
+  }
+  .sidebar-emergency {
+    margin: 16px 12px 0;
+    background: linear-gradient(135deg, var(--danger) 0%, #FF6584 100%);
+    border-radius: 14px;
+    padding: 14px;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .sidebar-emergency:hover { opacity: .9; }
+  .sidebar-emergency .em-title { color: #fff; font-weight: 700; font-size: 13px; }
+  .sidebar-emergency .em-sub { color: rgba(255,255,255,.8); font-size: 11px; margin-top: 2px; }
+
+  /* ─── Main Content ────────────────────────────────────────────── */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px;
+    position: relative;
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ─── Page Header ─────────────────────────────────────────────── */
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .page-title { font-size: 22px; font-weight: 700; }
+  .page-sub { font-size: 14px; color: var(--text-soft); margin-top: 2px; }
+  .header-actions { display: flex; gap: 10px; }
+
+  /* ─── Buttons ─────────────────────────────────────────────────── */
+  .btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity .15s, transform .1s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { opacity: .88; transform: translateY(-1px); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-ghost {
+    background: var(--white);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
+  .btn-success { background: var(--success); color: #fff; }
+
+  /* ─── Stats Row ───────────────────────────────────────────────── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .stat-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .stat-value { font-size: 28px; font-weight: 800; }
+  .stat-label { font-size: 13px; color: var(--text-soft); margin-top: 2px; }
+  .stat-delta { font-size: 12px; font-weight: 600; margin-top: 6px; }
+  .stat-delta.up { color: var(--success); }
+  .stat-delta.down { color: var(--danger); }
+
+  /* ─── Cards ───────────────────────────────────────────────────── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .card-title { font-size: 16px; font-weight: 700; }
+
+  /* ─── Table ───────────────────────────────────────────────────── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th {
+    text-align: left; padding: 10px 14px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--text-soft);
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--neutral); }
+
+  /* ─── Avatar ──────────────────────────────────────────────────── */
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; color: #fff;
+    flex-shrink: 0;
+  }
+  .av-purple { background: var(--primary); }
+  .av-orange { background: var(--warning); }
+  .av-green  { background: var(--success); }
+  .av-red    { background: var(--danger); }
+  .av-blue   { background: #1E90FF; }
+
+  .user-cell { display: flex; align-items: center; gap: 10px; }
+  .user-name { font-weight: 600; font-size: 14px; }
+  .user-email { font-size: 12px; color: var(--text-soft); }
+
+  /* ─── Badges ──────────────────────────────────────────────────── */
+  .badge {
+    display: inline-block; padding: 3px 10px;
+    border-radius: 99px; font-size: 11px; font-weight: 700;
+  }
+  .badge-active   { background: var(--success-light); color: #1A8A44; }
+  .badge-inactive { background: var(--neutral); color: var(--text-soft); }
+  .badge-pending  { background: var(--warning-light); color: var(--warning); }
+  .badge-verified { background: var(--primary-light); color: var(--primary); }
+  .badge-rejected { background: var(--danger-light); color: var(--danger); }
+  .badge-owner    { background: #EEF8FF; color: #1E90FF; }
+  .badge-vet      { background: var(--primary-light); color: var(--primary); }
+  .badge-admin    { background: #FFF4EF; color: var(--warning); }
+  .badge-emergency { background: var(--danger-light); color: var(--danger); }
+  .badge-urgent   { background: var(--warning-light); color: var(--warning); }
+  .badge-normal   { background: var(--success-light); color: #1A8A44; }
+
+  /* ─── Search / Filter bar ─────────────────────────────────────── */
+  .filter-bar {
+    display: flex; gap: 10px; align-items: center;
+    margin-bottom: 18px; flex-wrap: wrap;
+  }
+  .search-input {
+    flex: 1; min-width: 200px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    outline: none;
+    background: var(--neutral);
+  }
+  .search-input:focus { border-color: var(--primary); background: #fff; }
+  select.filter-select {
+    padding: 9px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    background: var(--neutral);
+    cursor: pointer;
+    outline: none;
+  }
+
+  /* ─── Profile Screen ──────────────────────────────────────────── */
+  .profile-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, #9B59B6 100%);
+    border-radius: var(--radius);
+    padding: 32px;
+    color: #fff;
+    display: flex; align-items: center; gap: 24px;
+    margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .profile-hero::after {
+    content: '🐾';
+    position: absolute; right: 32px; bottom: 16px;
+    font-size: 80px; opacity: .12;
+  }
+  .profile-avatar-lg {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: rgba(255,255,255,.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; font-weight: 800; color: #fff;
+    border: 3px solid rgba(255,255,255,.5);
+    flex-shrink: 0;
+  }
+  .profile-name { font-size: 22px; font-weight: 800; }
+  .profile-meta { font-size: 14px; opacity: .85; margin-top: 4px; }
+  .profile-badges { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .profile-badge-white {
+    background: rgba(255,255,255,.2);
+    border: 1px solid rgba(255,255,255,.4);
+    color: #fff;
+    padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600;
+  }
+
+  .info-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .info-item label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-soft); display: block; margin-bottom: 4px; }
+  .info-item span { font-size: 14px; font-weight: 500; }
+
+  /* ─── Pet Cards ───────────────────────────────────────────────── */
+  .pets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .pet-card {
+    background: var(--neutral);
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    border: 2px solid transparent;
+  }
+  .pet-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--primary); }
+  .pet-emoji { font-size: 42px; margin-bottom: 8px; }
+  .pet-name { font-weight: 700; font-size: 15px; }
+  .pet-breed { font-size: 12px; color: var(--text-soft); }
+  .pet-age { font-size: 12px; color: var(--text-soft); margin-top: 4px; }
+
+  /* ─── AI EMERGENCY SCREEN ──────────────────────────────────────── */
+  .emergency-hero {
+    background: linear-gradient(135deg, #FF4757 0%, #FF6584 100%);
+    border-radius: var(--radius);
+    padding: 28px;
+    color: #fff;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 20px;
+    position: relative; overflow: hidden;
+  }
+  .emergency-hero::after {
+    content: '🚑';
+    position: absolute; right: 24px;
+    font-size: 90px; opacity: .18;
+  }
+  .em-hero-icon {
+    width: 60px; height: 60px;
+    background: rgba(255,255,255,.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; flex-shrink: 0;
+  }
+  .em-hero-title { font-size: 22px; font-weight: 800; }
+  .em-hero-sub { font-size: 14px; opacity: .85; margin-top: 4px; }
+
+  /* Steps */
+  .ai-flow {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px; margin-bottom: 28px;
+  }
+  .flow-step {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    border-top: 4px solid var(--border);
+    transition: border-color .2s;
+  }
+  .flow-step.step-done  { border-top-color: var(--success); }
+  .flow-step.step-active { border-top-color: var(--primary); box-shadow: 0 4px 20px rgba(108,99,255,.18); }
+  .flow-step.step-alert { border-top-color: var(--danger); }
+  .flow-step.step-dispatched { border-top-color: var(--success); }
+
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: #fff;
+    margin-bottom: 10px;
+    background: var(--text-soft);
+  }
+  .step-done .step-num  { background: var(--success); }
+  .step-active .step-num { background: var(--primary); }
+  .step-alert .step-num { background: var(--danger); }
+  .step-dispatched .step-num { background: var(--success); }
+
+  .step-icon { font-size: 28px; margin-bottom: 8px; }
+  .step-title { font-weight: 700; font-size: 14px; }
+  .step-desc { font-size: 12px; color: var(--text-soft); margin-top: 4px; line-height: 1.5; }
+  .step-status { font-size: 11px; font-weight: 700; margin-top: 8px; }
+  .step-done .step-status   { color: var(--success); }
+  .step-active .step-status  { color: var(--primary); }
+  .step-alert .step-status  { color: var(--danger); }
+
+  /* Symptom input box */
+  .symptom-box {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+  }
+  .symptom-box label { font-weight: 700; font-size: 15px; display: block; margin-bottom: 10px; }
+  .symptom-textarea {
+    width: 100%; min-height: 90px;
+    padding: 14px; border-radius: 10px;
+    border: 2px solid var(--border);
+    font-size: 14px; font-family: inherit; resize: vertical; outline: none;
+    transition: border-color .15s;
+  }
+  .symptom-textarea:focus { border-color: var(--primary); }
+  .input-actions { display: flex; gap: 10px; margin-top: 12px; align-items: center; }
+  .voice-btn {
+    padding: 10px 16px; border-radius: 10px;
+    background: var(--neutral); border: 1px solid var(--border);
+    font-size: 14px; cursor: pointer; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+    transition: background .15s;
+  }
+  .voice-btn:hover { background: var(--primary-light); }
+  .char-count { font-size: 12px; color: var(--text-soft); margin-left: auto; }
+
+  /* AI result box */
+  .ai-result {
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 20px;
+    display: flex; gap: 18px; align-items: flex-start;
+  }
+  .ai-result.emergency-result { background: var(--danger-light); border: 2px solid var(--danger); }
+  .ai-result.urgent-result    { background: var(--warning-light); border: 2px solid var(--warning); }
+  .ai-result.normal-result    { background: var(--success-light); border: 2px solid var(--success); }
+  .ai-result-icon { font-size: 36px; flex-shrink: 0; }
+  .ai-result-title { font-size: 18px; font-weight: 800; }
+  .ai-result.emergency-result .ai-result-title { color: var(--danger); }
+  .ai-result.urgent-result    .ai-result-title { color: var(--warning); }
+  .ai-result.normal-result    .ai-result-title { color: #1A8A44; }
+  .ai-result-desc { font-size: 14px; color: var(--text-soft); margin-top: 6px; line-height: 1.6; }
+  .ai-confidence { font-size: 12px; font-weight: 700; margin-top: 8px; color: var(--text-soft); }
+
+  /* Dispatch status */
+  .dispatch-panel {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+  }
+  .dispatch-header {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+  }
+  .dispatch-pulse {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--danger);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    animation: pulse 1.4s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,71,87,.4); }
+    50% { transform: scale(1.08); box-shadow: 0 0 0 12px rgba(255,71,87,0); }
+  }
+  .dispatch-title { font-size: 17px; font-weight: 800; }
+  .dispatch-sub { font-size: 13px; color: var(--text-soft); margin-top: 2px; }
+
+  .dispatch-timeline { position: relative; padding-left: 28px; }
+  .dispatch-timeline::before {
+    content: ''; position: absolute; left: 10px; top: 8px; bottom: 8px;
+    width: 2px; background: var(--border);
+  }
+  .tl-item {
+    position: relative; margin-bottom: 18px;
+    padding-left: 10px;
+  }
+  .tl-dot {
+    position: absolute; left: -22px; top: 2px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--border);
+  }
+  .tl-item.done .tl-dot   { background: var(--success); }
+  .tl-item.active .tl-dot { background: var(--primary); animation: pulse 1.2s infinite; }
+  .tl-item.pending .tl-dot { background: var(--border); }
+  .tl-time  { font-size: 11px; color: var(--text-soft); margin-bottom: 2px; }
+  .tl-label { font-size: 14px; font-weight: 600; }
+  .tl-detail { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+
+  /* Map mock */
+  .map-mock {
+    background: #E5F0E0;
+    border-radius: 14px;
+    height: 200px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+    border: 1px solid #C8DFC2;
+    margin-top: 16px;
+  }
+  .map-mock-bg {
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 30px, #D0E8C9 30px, #D0E8C9 31px),
+      repeating-linear-gradient(90deg, transparent, transparent 30px, #D0E8C9 30px, #D0E8C9 31px);
+  }
+  .map-road-h {
+    position: absolute; top: 50%; left: 0; right: 0;
+    height: 22px; background: #C8C0B0; transform: translateY(-50%);
+  }
+  .map-road-v {
+    position: absolute; left: 38%; top: 0; bottom: 0;
+    width: 22px; background: #C8C0B0;
+  }
+  .map-pin-you {
+    position: absolute; left: 37%; top: 38%;
+    font-size: 28px; z-index: 3;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.3));
+    animation: bounce 1.2s infinite;
+  }
+  .map-pin-amb {
+    position: absolute; left: 60%; top: 28%;
+    font-size: 24px; z-index: 3;
+    animation: drive .8s infinite alternate;
+  }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  @keyframes drive { 0%{transform:translateX(0)} 100%{transform:translateX(-4px)} }
+  .map-eta {
+    position: absolute; top: 10px; right: 12px;
+    background: var(--white); border-radius: 10px;
+    padding: 8px 12px; font-size: 13px; font-weight: 700;
+    box-shadow: var(--shadow-sm); z-index: 4;
+  }
+  .map-eta span { color: var(--danger); font-size: 20px; }
+
+  /* Ambulance info */
+  .amb-card {
+    background: var(--neutral);
+    border-radius: 14px; padding: 16px;
+    display: flex; align-items: center; gap: 14px;
+    margin-top: 16px;
+  }
+  .amb-icon { font-size: 36px; }
+  .amb-name { font-weight: 700; font-size: 15px; }
+  .amb-detail { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+  .amb-distance { margin-left: auto; text-align: right; }
+  .amb-dist-val { font-size: 18px; font-weight: 800; color: var(--danger); }
+  .amb-dist-label { font-size: 11px; color: var(--text-soft); }
+
+  /* ─── Notification Panel ──────────────────────────────────────── */
+  .notif-list { display: flex; flex-direction: column; gap: 10px; }
+  .notif-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px; border-radius: 12px;
+    background: var(--neutral);
+    cursor: pointer; transition: background .15s;
+  }
+  .notif-item:hover { background: var(--primary-light); }
+  .notif-item.unread { background: var(--primary-light); border-left: 3px solid var(--primary); }
+  .notif-item.unread-danger { background: var(--danger-light); border-left: 3px solid var(--danger); }
+  .notif-icon { font-size: 24px; flex-shrink: 0; }
+  .notif-title { font-weight: 700; font-size: 14px; }
+  .notif-desc  { font-size: 13px; color: var(--text-soft); margin-top: 2px; line-height: 1.5; }
+  .notif-time  { font-size: 11px; color: var(--text-soft); margin-top: 4px; }
+
+  /* ─── Admin reports table ─────────────────────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  /* ─── Transitions ─────────────────────────────────────────────── */
+  .screen { animation: fadeUp .2s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* ─── Store Screen ───────────────────────────────────────────── */
+  .store-hero {
+    background: linear-gradient(135deg, #FF6B35 0%, #FFB347 100%);
+    border-radius: var(--radius); padding: 28px; color: #fff;
+    margin-bottom: 24px; display: flex; align-items: center; gap: 20px;
+    position: relative; overflow: hidden;
+  }
+  .store-hero::after { content: '🛍️'; position: absolute; right: 24px; font-size: 90px; opacity: .18; }
+  .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .product-card {
+    background: var(--white); border-radius: 14px; overflow: hidden;
+    box-shadow: var(--shadow-sm); cursor: pointer;
+    transition: transform .15s, box-shadow .15s; border: 2px solid transparent;
+  }
+  .product-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--primary); }
+  .product-img {
+    height: 110px; display: flex; align-items: center; justify-content: center;
+    font-size: 52px; background: var(--neutral);
+  }
+  .product-body { padding: 14px; }
+  .product-name { font-weight: 700; font-size: 14px; }
+  .product-cat  { font-size: 11px; color: var(--text-soft); margin-top: 2px; }
+  .product-price { font-size: 18px; font-weight: 800; color: var(--primary); margin-top: 8px; }
+  .product-stock { font-size: 11px; color: var(--text-soft); }
+  .product-actions { display: flex; gap: 6px; margin-top: 10px; }
+  .ai-rec-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: linear-gradient(90deg, #6C63FF, #9B59B6);
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 99px; margin-top: 6px;
+  }
+
+  /* ─── AI Recommendations Panel ────────────────────────────────── */
+  .ai-rec-panel {
+    background: linear-gradient(135deg, #1A1D2E 0%, #2D3561 100%);
+    border-radius: var(--radius); padding: 24px; color: #fff; margin-bottom: 20px;
+  }
+  .ai-rec-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .ai-rec-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: rgba(108,99,255,.3); display: flex; align-items: center;
+    justify-content: center; font-size: 24px; flex-shrink: 0;
+  }
+  .ai-rec-title { font-size: 17px; font-weight: 800; }
+  .ai-rec-sub   { font-size: 13px; opacity: .7; margin-top: 3px; }
+  .ai-rec-pipeline {
+    display: flex; align-items: center; gap: 0; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .pipeline-step {
+    background: rgba(255,255,255,.08); border-radius: 10px;
+    padding: 10px 14px; font-size: 12px; font-weight: 600; color: #fff;
+    text-align: center; min-width: 110px;
+  }
+  .pipeline-arrow { color: rgba(255,255,255,.4); font-size: 18px; padding: 0 4px; }
+  .rec-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .rec-card {
+    background: rgba(255,255,255,.08); border-radius: 12px; padding: 14px;
+    border: 1px solid rgba(255,255,255,.12);
+    transition: background .15s; cursor: pointer;
+  }
+  .rec-card:hover { background: rgba(108,99,255,.3); }
+  .rec-emoji { font-size: 28px; margin-bottom: 8px; }
+  .rec-name  { font-size: 13px; font-weight: 700; }
+  .rec-reason { font-size: 11px; opacity: .7; margin-top: 4px; line-height: 1.4; }
+  .rec-score {
+    margin-top: 8px; font-size: 11px; font-weight: 700;
+    color: #2ED573;
+  }
+  .rec-price { font-size: 15px; font-weight: 800; color: #FFB347; margin-top: 4px; }
+
+  /* ─── RAG / MLflow Screen ─────────────────────────────────────── */
+  .mlflow-hero {
+    background: linear-gradient(135deg, #1A1D2E 0%, #2D3561 100%);
+    border-radius: var(--radius); padding: 28px; color: #fff;
+    margin-bottom: 24px; display: flex; align-items: center; gap: 20px;
+    position: relative; overflow: hidden;
+  }
+  .mlflow-hero::after { content: '🧪'; position: absolute; right: 24px; font-size: 90px; opacity: .12; }
+  .mlflow-icon {
+    width: 60px; height: 60px; background: rgba(108,99,255,.3); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0;
+  }
+  .exp-table-wrap { overflow-x: auto; }
+  .exp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .exp-table th {
+    text-align: left; padding: 10px 12px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--text-soft);
+    border-bottom: 1px solid var(--border); background: var(--neutral);
+  }
+  .exp-table td { padding: 11px 12px; border-bottom: 1px solid var(--border); }
+  .exp-table tr:last-child td { border-bottom: none; }
+  .exp-table tr.winner td { background: #EDFFF5; font-weight: 600; }
+  .exp-table tr:hover td { background: var(--neutral); }
+  .bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .bar { height: 8px; border-radius: 99px; background: var(--primary); }
+  .bar-val { font-size: 12px; font-weight: 700; width: 36px; }
+  .rag-pipeline {
+    display: flex; align-items: flex-start; gap: 0;
+    margin: 16px 0; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px;
+  }
+  .rag-step {
+    background: var(--neutral); border-radius: 12px; padding: 14px 16px;
+    min-width: 140px; flex-shrink: 0;
+    border-top: 3px solid var(--primary);
+  }
+  .rag-step-icon { font-size: 24px; margin-bottom: 6px; }
+  .rag-step-title { font-size: 13px; font-weight: 700; }
+  .rag-step-desc  { font-size: 11px; color: var(--text-soft); margin-top: 4px; line-height: 1.4; }
+  .rag-arrow { display: flex; align-items: center; padding: 0 6px; color: var(--text-soft); font-size: 20px; flex-shrink: 0; }
+  .metric-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+  .metric-card {
+    background: var(--white); border-radius: 12px; padding: 16px;
+    box-shadow: var(--shadow-sm); text-align: center;
+  }
+  .metric-val { font-size: 26px; font-weight: 800; color: var(--primary); }
+  .metric-label { font-size: 12px; color: var(--text-soft); margin-top: 4px; }
+
+  /* ─── Adoption Feed Screen ───────────────────────────────────── */
+  .adopt-hero {
+    background: linear-gradient(135deg, #2ED573 0%, #1abc9c 100%);
+    border-radius: var(--radius); padding: 28px; color: #fff;
+    margin-bottom: 24px; display: flex; align-items: center; gap: 20px;
+    position: relative; overflow: hidden;
+  }
+  .adopt-hero::after { content: '🏠'; position: absolute; right: 24px; font-size: 90px; opacity: .15; }
+  .adopt-hero-icon {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(255,255,255,.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; flex-shrink: 0;
+  }
+
+  /* AI match panel */
+  .match-panel {
+    background: linear-gradient(135deg, #1A1D2E 0%, #1a3a2e 100%);
+    border-radius: var(--radius); padding: 24px; color: #fff; margin-bottom: 20px;
+  }
+  .match-input-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .match-textarea {
+    flex: 1; min-width: 220px; padding: 12px 14px;
+    border-radius: 10px; border: 1.5px solid rgba(255,255,255,.2);
+    background: rgba(255,255,255,.08); color: #fff;
+    font-size: 13px; font-family: inherit; resize: none; height: 60px; outline: none;
+  }
+  .match-textarea::placeholder { color: rgba(255,255,255,.4); }
+  .match-textarea:focus { border-color: #2ED573; }
+  .match-results { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+  .match-card {
+    background: rgba(255,255,255,.07); border-radius: 12px; padding: 14px;
+    border: 1.5px solid rgba(255,255,255,.12); cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .match-card:hover { background: rgba(46,213,115,.15); border-color: #2ED573; }
+  .match-animal-emoji { font-size: 36px; margin-bottom: 6px; }
+  .match-animal-name { font-size: 14px; font-weight: 800; }
+  .match-animal-breed { font-size: 11px; opacity: .7; margin-top: 2px; }
+  .match-pct {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(46,213,115,.25); border: 1px solid #2ED573;
+    color: #2ED573; font-size: 11px; font-weight: 800;
+    padding: 3px 10px; border-radius: 99px; margin-top: 8px;
+  }
+  .match-why { font-size: 11px; opacity: .65; margin-top: 6px; line-height: 1.5; }
+  .match-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+  .match-tag {
+    background: rgba(255,255,255,.1); color: #fff; font-size: 10px;
+    font-weight: 600; padding: 2px 8px; border-radius: 99px;
+  }
+
+  /* Adoption feed cards */
+  .adopt-feed { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  .adopt-card {
+    background: var(--white); border-radius: 14px; overflow: hidden;
+    box-shadow: var(--shadow-sm); transition: transform .15s, box-shadow .15s;
+    cursor: pointer; border: 2px solid transparent;
+  }
+  .adopt-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: #2ED573; }
+  .adopt-card-img {
+    height: 120px; display: flex; align-items: center; justify-content: center;
+    font-size: 60px; position: relative;
+  }
+  .adopt-card-img.bg-green  { background: #E8FFF5; }
+  .adopt-card-img.bg-orange { background: #FFF4EF; }
+  .adopt-card-img.bg-blue   { background: #EEF8FF; }
+  .adopt-card-img.bg-purple { background: var(--primary-light); }
+  .adopt-card-img.bg-yellow { background: #FFFBEF; }
+  .adopt-status-badge {
+    position: absolute; top: 10px; right: 10px;
+    font-size: 10px; font-weight: 800; padding: 3px 8px;
+    border-radius: 99px;
+  }
+  .adopt-status-available { background: var(--success-light); color: #1A8A44; }
+  .adopt-status-pending   { background: var(--warning-light);  color: var(--warning); }
+  .adopt-card-body { padding: 14px; }
+  .adopt-animal-name { font-size: 15px; font-weight: 800; }
+  .adopt-animal-info { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+  .adopt-location    { font-size: 12px; color: var(--text-soft); margin-top: 4px; }
+  .adopt-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+  .adopt-tag {
+    background: var(--neutral); color: var(--text-soft); font-size: 10px;
+    font-weight: 600; padding: 2px 8px; border-radius: 99px;
+  }
+  .adopt-ai-match {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: linear-gradient(90deg,#2ED573,#1abc9c);
+    color: #fff; font-size: 10px; font-weight: 800;
+    padding: 3px 8px; border-radius: 99px; margin-top: 8px;
+  }
+  .adopt-actions { display: flex; gap: 6px; margin-top: 10px; }
+
+  /* ─── Mobile Phone Frame (for emergency modal) ───────────────── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.55); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--white);
+    border-radius: 20px;
+    width: 380px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    position: relative;
+  }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: var(--neutral); border: none; border-radius: 50%;
+    width: 30px; height: 30px; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { background: var(--border); }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🐾</div>
+      <span class="logo-text">Pawly</span>
+    </div>
+
+    <span class="nav-section-label">Main</span>
+    <button class="nav-item active" onclick="showScreen('dashboard')">
+      <span class="nav-icon">🏠</span> Dashboard
+    </button>
+    <button class="nav-item" onclick="showScreen('users')">
+      <span class="nav-icon">👥</span> Users
+      <span class="nav-badge">3</span>
+    </button>
+    <button class="nav-item" onclick="showScreen('profile')">
+      <span class="nav-icon">👤</span> My Profile
+    </button>
+    <button class="nav-item" onclick="showScreen('pets')">
+      <span class="nav-icon">🐕</span> My Pets
+    </button>
+    <button class="nav-item" onclick="showScreen('notifications')">
+      <span class="nav-icon">🔔</span> Notifications
+      <span class="nav-badge">2</span>
+    </button>
+
+    <button class="nav-item" onclick="showScreen('store')">
+      <span class="nav-icon">🛒</span> Pet Store
+    </button>
+    <button class="nav-item" onclick="showScreen('adopt')">
+      <span class="nav-icon">🏠</span> Adopt a Pet
+    </button>
+
+    <span class="nav-section-label" style="margin-top:12px">Admin</span>
+    <button class="nav-item" onclick="showScreen('admin')">
+      <span class="nav-icon">🛡️</span> Admin Panel
+    </button>
+    <button class="nav-item" onclick="showScreen('vets')">
+      <span class="nav-icon">🩺</span> Veterinarians
+    </button>
+    <button class="nav-item" onclick="showScreen('aiengine')">
+      <span class="nav-icon">🧪</span> AI Engine
+    </button>
+
+    <!-- Emergency CTA -->
+    <div class="sidebar-emergency" onclick="showScreen('emergency')">
+      <div class="em-title">🚨 AI Emergency</div>
+      <div class="em-sub">Tap to call vet ambulance</div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <main class="main-content">
+
+    <!-- ── DASHBOARD ── -->
+    <div id="screen-dashboard" class="screen active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Welcome back, Rached 👋</div>
+          <div class="page-sub">Here's what's happening in your Pawly account today.</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-ghost btn-sm" onclick="showScreen('notifications')">🔔 Alerts</button>
+          <button class="btn btn-danger btn-sm" onclick="showScreen('emergency')">🚨 Emergency</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value">1,284</div>
+          <div class="stat-label">Total Users</div>
+          <div class="stat-delta up">↑ 12% this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🐕</div>
+          <div class="stat-value">3,742</div>
+          <div class="stat-label">Pets Registered</div>
+          <div class="stat-delta up">↑ 8% this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🩺</div>
+          <div class="stat-value">98</div>
+          <div class="stat-label">Verified Vets</div>
+          <div class="stat-delta up">↑ 3 new this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🚨</div>
+          <div class="stat-value">7</div>
+          <div class="stat-label">AI Emergencies Today</div>
+          <div class="stat-delta down">↓ 2 vs yesterday</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Registrations</span>
+            <button class="btn btn-ghost btn-sm" onclick="showScreen('users')">View all</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>User</th><th>Role</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="user-cell"><div class="avatar av-purple">RB</div><div><div class="user-name">Rania Ben Ali</div><div class="user-email">rania@email.com</div></div></div></td>
+                  <td><span class="badge badge-owner">Pet Owner</span></td>
+                  <td><span class="badge badge-active">Active</span></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="avatar av-blue">KM</div><div><div class="user-name">Dr. Karim Mansour</div><div class="user-email">karim.vet@email.com</div></div></div></td>
+                  <td><span class="badge badge-vet">Veterinarian</span></td>
+                  <td><span class="badge badge-pending">Pending</span></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="avatar av-green">SA</div><div><div class="user-name">Sara Aziz</div><div class="user-email">sara@email.com</div></div></div></td>
+                  <td><span class="badge badge-owner">Pet Owner</span></td>
+                  <td><span class="badge badge-active">Active</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent AI Emergency Calls</span>
+          </div>
+          <div class="notif-list">
+            <div class="notif-item unread-danger">
+              <div class="notif-icon">🚨</div>
+              <div>
+                <div class="notif-title">EMERGENCY — Milo (Dog)</div>
+                <div class="notif-desc">Difficulty breathing, collapsed. Ambulance dispatched to Tunis.</div>
+                <div class="notif-time">2 min ago · <span class="badge badge-emergency">EMERGENCY</span></div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-icon">⚠️</div>
+              <div>
+                <div class="notif-title">URGENT — Luna (Cat)</div>
+                <div class="notif-desc">Vomiting repeatedly. Nearest vet suggested.</div>
+                <div class="notif-time">1 hr ago · <span class="badge badge-urgent">URGENT</span></div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-icon">✅</div>
+              <div>
+                <div class="notif-title">NORMAL — Buddy (Dog)</div>
+                <div class="notif-desc">Mild itching. General care guidance provided.</div>
+                <div class="notif-time">3 hr ago · <span class="badge badge-normal">NORMAL</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── USERS ── -->
+    <div id="screen-users" class="screen">
+      <div class="page-header">
+        <div>
+          <div class="page-title">User Management</div>
+          <div class="page-sub">Manage all registered users on the platform</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary btn-sm">+ Add User</button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input class="search-input" type="text" placeholder="🔍  Search users by name or email…" />
+        <select class="filter-select">
+          <option>All Roles</option>
+          <option>Pet Owner</option>
+          <option>Veterinarian</option>
+          <option>Administrator</option>
+        </select>
+        <select class="filter-select">
+          <option>All Status</option>
+          <option>Active</option>
+          <option>Inactive</option>
+          <option>Pending</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th><th>Role</th><th>Joined</th><th>Status</th><th>Verification</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="user-cell"><div class="avatar av-purple">RT</div><div><div class="user-name">Rached Trabelsi</div><div class="user-email">rached@pawly.com</div></div></div></td>
+                <td><span class="badge badge-admin">Admin</span></td>
+                <td>Jan 10, 2026</td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>—</td>
+                <td><button class="btn btn-ghost btn-sm">View</button></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="avatar av-blue">KM</div><div><div class="user-name">Dr. Karim Mansour</div><div class="user-email">karim.vet@email.com</div></div></div></td>
+                <td><span class="badge badge-vet">Veterinarian</span></td>
+                <td>Oct 14, 2026</td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td><span class="badge badge-pending">Pending</span></td>
+                <td>
+                  <button class="btn btn-primary btn-sm" style="margin-right:4px">✓ Verify</button>
+                  <button class="btn btn-ghost btn-sm">View</button>
+                </td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="avatar av-purple">RB</div><div><div class="user-name">Rania Ben Ali</div><div class="user-email">rania@email.com</div></div></div></td>
+                <td><span class="badge badge-owner">Pet Owner</span></td>
+                <td>Oct 12, 2026</td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>—</td>
+                <td>
+                  <button class="btn btn-ghost btn-sm" style="margin-right:4px">View</button>
+                  <button class="btn btn-danger btn-sm">Deactivate</button>
+                </td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="avatar av-orange">SA</div><div><div class="user-name">Sara Aziz</div><div class="user-email">sara@email.com</div></div></div></td>
+                <td><span class="badge badge-owner">Pet Owner</span></td>
+                <td>Oct 11, 2026</td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td>—</td>
+                <td>
+                  <button class="btn btn-ghost btn-sm" style="margin-right:4px">View</button>
+                  <button class="btn btn-danger btn-sm">Deactivate</button>
+                </td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="avatar av-red">MA</div><div><div class="user-name">Mohamed Amri</div><div class="user-email">m.amri@email.com</div></div></div></td>
+                <td><span class="badge badge-owner">Pet Owner</span></td>
+                <td>Sep 30, 2026</td>
+                <td><span class="badge badge-inactive">Inactive</span></td>
+                <td>—</td>
+                <td>
+                  <button class="btn btn-ghost btn-sm" style="margin-right:4px">View</button>
+                  <button class="btn btn-success btn-sm">Reactivate</button>
+                </td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="avatar av-green">LC</div><div><div class="user-name">Dr. Leila Charef</div><div class="user-email">leila.vet@email.com</div></div></div></td>
+                <td><span class="badge badge-vet">Veterinarian</span></td>
+                <td>Sep 20, 2026</td>
+                <td><span class="badge badge-active">Active</span></td>
+                <td><span class="badge badge-verified">Verified ✓</span></td>
+                <td><button class="btn btn-ghost btn-sm">View</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROFILE ── -->
+    <div id="screen-profile" class="screen">
+      <div class="page-header">
+        <div>
+          <div class="page-title">My Profile</div>
+          <div class="page-sub">Manage your personal information</div>
+        </div>
+        <button class="btn btn-primary btn-sm">✏️ Edit Profile</button>
+      </div>
+
+      <div class="profile-hero">
+        <div class="profile-avatar-lg">R</div>
+        <div>
+          <div class="profile-name">Rached Trabelsi</div>
+          <div class="profile-meta">rached.trabelsi@pawly.com · +216 55 123 456</div>
+          <div class="profile-badges">
+            <span class="profile-badge-white">🛡️ Administrator</span>
+            <span class="profile-badge-white">🐕 3 Pets</span>
+            <span class="profile-badge-white">✅ Verified</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Personal Information</span></div>
+          <div class="info-grid">
+            <div class="info-item"><label>First Name</label><span>Rached</span></div>
+            <div class="info-item"><label>Last Name</label><span>Trabelsi</span></div>
+            <div class="info-item"><label>Email</label><span>rached.trabelsi@pawly.com</span></div>
+            <div class="info-item"><label>Phone</label><span>+216 55 123 456</span></div>
+            <div class="info-item"><label>Location</label><span>Tunis, Tunisia</span></div>
+            <div class="info-item"><label>Member Since</label><span>Jan 10, 2026</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Account Activity</span></div>
+          <div class="info-grid">
+            <div class="info-item"><label>Appointments</label><span>12 total</span></div>
+            <div class="info-item"><label>Orders</label><span>5 orders</span></div>
+            <div class="info-item"><label>Adoption Apps</label><span>1 pending</span></div>
+            <div class="info-item"><label>AI Emergency Calls</label><span>2 calls</span></div>
+            <div class="info-item"><label>Account Status</label><span><span class="badge badge-active">Active</span></span></div>
+            <div class="info-item"><label>Role</label><span><span class="badge badge-admin">Admin</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PETS ── -->
+    <div id="screen-pets" class="screen">
+      <div class="page-header">
+        <div>
+          <div class="page-title">My Pets</div>
+          <div class="page-sub">Manage all your registered pets</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-danger btn-sm" onclick="showScreen('emergency')">🚨 Emergency</button>
+          <button class="btn btn-primary btn-sm">+ Add Pet</button>
+        </div>
+      </div>
+
+      <div class="pets-grid">
+        <div class="pet-card">
+          <div class="pet-emoji">🐕</div>
+          <div class="pet-name">Milo</div>
+          <div class="pet-breed">Golden Retriever</div>
+          <div class="pet-age">3 years old · Male</div>
+          <div style="margin-top:12px; display:flex; gap:6px; justify-content:center; flex-wrap:wrap">
+            <span class="badge badge-active">Healthy</span>
+            <span class="badge badge-verified">Vaccinated ✓</span>
+          </div>
+          <button class="btn btn-danger btn-sm" style="margin-top:12px; width:100%" onclick="showScreen('emergency')">🚨 SOS</button>
+        </div>
+        <div class="pet-card">
+          <div class="pet-emoji">🐈</div>
+          <div class="pet-name">Luna</div>
+          <div class="pet-breed">Persian Cat</div>
+          <div class="pet-age">2 years old · Female</div>
+          <div style="margin-top:12px; display:flex; gap:6px; justify-content:center; flex-wrap:wrap">
+            <span class="badge badge-pending">Checkup due</span>
+          </div>
+          <button class="btn btn-danger btn-sm" style="margin-top:12px; width:100%" onclick="showScreen('emergency')">🚨 SOS</button>
+        </div>
+        <div class="pet-card" style="border: 2px dashed var(--border); background: transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:180px; cursor:pointer;">
+          <div style="font-size:36px; color:var(--text-soft)">+</div>
+          <div style="font-size:14px; color:var(--text-soft); margin-top:8px">Add a pet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AI EMERGENCY ── -->
+    <div id="screen-emergency" class="screen">
+      <div class="page-header">
+        <div>
+          <div class="page-title">AI Emergency</div>
+          <div class="page-sub">Describe your pet's symptoms — AI will assess urgency and dispatch help</div>
+        </div>
+      </div>
+
+      <div class="emergency-hero">
+        <div class="em-hero-icon">🚨</div>
+        <div>
+          <div class="em-hero-title">Pet Emergency Assistant</div>
+          <div class="em-hero-sub">Powered by AI · Available 24/7 · Auto-dispatch if critical</div>
+        </div>
+      </div>
+
+      <!-- Step Indicators -->
+      <div class="ai-flow">
+        <div class="flow-step step-done" id="step1">
+          <div class="step-num">1</div>
+          <div class="step-icon">🐾</div>
+          <div class="step-title">Select Pet</div>
+          <div class="step-desc">Choose which pet is in distress</div>
+          <div class="step-status">✓ Milo selected</div>
+        </div>
+        <div class="flow-step step-active" id="step2">
+          <div class="step-num">2</div>
+          <div class="step-icon">🤖</div>
+          <div class="step-title">Describe Symptoms</div>
+          <div class="step-desc">Text or voice input analyzed by AI</div>
+          <div class="step-status">● In progress…</div>
+        </div>
+        <div class="flow-step" id="step3">
+          <div class="step-num">3</div>
+          <div class="step-icon">📊</div>
+          <div class="step-title">AI Triage</div>
+          <div class="step-desc">Severity classification returned in &lt;10s</div>
+          <div class="step-status" style="color:var(--text-soft)">Waiting…</div>
+        </div>
+        <div class="flow-step" id="step4">
+          <div class="step-num">4</div>
+          <div class="step-icon">🚑</div>
+          <div class="step-title">Dispatch</div>
+          <div class="step-desc">Nearest ambulance auto-assigned via GPS</div>
+          <div class="step-status" style="color:var(--text-soft)">Waiting…</div>
+        </div>
+      </div>
+
+      <!-- Symptom Input -->
+      <div class="symptom-box" id="symptomInput">
+        <label>📝 Describe your pet's symptoms</label>
+        <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+          <span style="font-size:13px; color:var(--text-soft);">Pet:</span>
+          <button class="btn btn-primary btn-sm">🐕 Milo (Golden Retriever)</button>
+          <button class="btn btn-ghost btn-sm">🐈 Luna (Cat)</button>
+        </div>
+        <textarea class="symptom-textarea" id="symptomText" placeholder="Example: My dog Milo suddenly collapsed, is breathing very fast and his gums look pale. He is not responsive to his name…"></textarea>
+        <div class="input-actions">
+          <button class="voice-btn">🎙️ Voice Input</button>
+          <button class="btn btn-primary" onclick="runAITriage()">🤖 Analyze with AI</button>
+          <span class="char-count" id="charCount">0 / 2000</span>
+        </div>
+      </div>
+
+      <!-- AI Result (hidden until triggered) -->
+      <div id="aiResultSection" style="display:none">
+
+        <div class="ai-result emergency-result">
+          <div class="ai-result-icon">🚨</div>
+          <div>
+            <div class="ai-result-title">EMERGENCY — Immediate Action Required</div>
+            <div class="ai-result-desc">
+              The described symptoms — sudden collapse, rapid breathing, pale gums, and unresponsiveness — indicate a possible <strong>cardiovascular or respiratory emergency</strong>. This situation is life-threatening and requires immediate veterinary intervention.
+            </div>
+            <div class="ai-confidence">🤖 AI Confidence: 94% · Classified in 2.3s · Model: Pawly-Triage-v2</div>
+          </div>
+        </div>
+
+        <!-- Dispatch Panel -->
+        <div class="dispatch-panel">
+          <div class="dispatch-header">
+            <div class="dispatch-pulse">🚑</div>
+            <div>
+              <div class="dispatch-title">Ambulance Dispatched</div>
+              <div class="dispatch-sub">VetAmbulance #A-07 · Dr. Leila Charef · 3.2 km away</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="margin-left:auto">📞 Call Driver</button>
+          </div>
+
+          <div style="display:flex; gap:20px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:220px;">
+              <div style="font-weight:700; font-size:14px; margin-bottom:12px;">📍 Live Timeline</div>
+              <div class="dispatch-timeline">
+                <div class="tl-item done">
+                  <div class="tl-dot"></div>
+                  <div class="tl-time">14:32:05</div>
+                  <div class="tl-label">Symptoms submitted</div>
+                  <div class="tl-detail">Milo — "collapsed, pale gums…"</div>
+                </div>
+                <div class="tl-item done">
+                  <div class="tl-dot"></div>
+                  <div class="tl-time">14:32:07</div>
+                  <div class="tl-label">AI classified: EMERGENCY</div>
+                  <div class="tl-detail">Confidence 94% · 2.3s response</div>
+                </div>
+                <div class="tl-item done">
+                  <div class="tl-dot"></div>
+                  <div class="tl-time">14:32:08</div>
+                  <div class="tl-label">GPS location captured</div>
+                  <div class="tl-detail">36.8065° N, 10.1815° E · Tunis</div>
+                </div>
+                <div class="tl-item done">
+                  <div class="tl-dot"></div>
+                  <div class="tl-time">14:32:10</div>
+                  <div class="tl-label">Nearest ambulance found</div>
+                  <div class="tl-detail">#A-07 — 3.2 km away — AVAILABLE</div>
+                </div>
+                <div class="tl-item active">
+                  <div class="tl-dot"></div>
+                  <div class="tl-time">14:32:11</div>
+                  <div class="tl-label">Driver alert sent via FCM</div>
+                  <div class="tl-detail">Dr. Leila Charef · Acknowledged ✓</div>
+                </div>
+                <div class="tl-item pending">
+                  <div class="tl-dot"></div>
+                  <div class="tl-time">ETA ~7 min</div>
+                  <div class="tl-label">Ambulance en route</div>
+                  <div class="tl-detail">Live GPS tracking active…</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="flex:1; min-width:240px;">
+              <div style="font-weight:700; font-size:14px; margin-bottom:12px;">🗺️ Live Map</div>
+              <div class="map-mock">
+                <div class="map-mock-bg"></div>
+                <div class="map-road-h"></div>
+                <div class="map-road-v"></div>
+                <div class="map-pin-you" title="Your location">📍</div>
+                <div class="map-pin-amb" title="Ambulance">🚑</div>
+                <div class="map-eta">ETA <span>7</span> min</div>
+              </div>
+              <div class="amb-card">
+                <div class="amb-icon">🚑</div>
+                <div>
+                  <div class="amb-name">VetAmbulance #A-07</div>
+                  <div class="amb-detail">Dr. Leila Charef · +216 55 999 007</div>
+                  <div class="amb-detail" style="margin-top:4px"><span class="badge badge-verified">Dispatched</span></div>
+                </div>
+                <div class="amb-distance">
+                  <div class="amb-dist-val">3.2</div>
+                  <div class="amb-dist-label">km away</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:4px;">
+          <button class="btn btn-ghost" onclick="resetEmergency()">↩ New Assessment</button>
+          <button class="btn btn-primary">📞 Call Emergency Vet</button>
+          <button class="btn btn-ghost">📋 View Pet Health Record</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NOTIFICATIONS ── -->
+    <div id="screen-notifications" class="screen">
+      <div class="page-header">
+        <div class="page-title">Notifications</div>
+        <button class="btn btn-ghost btn-sm">Mark all read</button>
+      </div>
+      <div class="card">
+        <div class="notif-list">
+          <div class="notif-item unread-danger">
+            <div class="notif-icon">🚨</div>
+            <div>
+              <div class="notif-title">Emergency Dispatched — Milo</div>
+              <div class="notif-desc">VetAmbulance #A-07 has been dispatched. Dr. Leila Charef is on the way — ETA 7 minutes.</div>
+              <div class="notif-time">2 min ago</div>
+            </div>
+          </div>
+          <div class="notif-item unread">
+            <div class="notif-icon">🩺</div>
+            <div>
+              <div class="notif-title">New Vet Profile Pending Verification</div>
+              <div class="notif-desc">Dr. Karim Mansour has submitted a veterinarian profile and is awaiting admin verification.</div>
+              <div class="notif-time">35 min ago</div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-icon">💉</div>
+            <div>
+              <div class="notif-title">Vaccination Reminder — Luna</div>
+              <div class="notif-desc">Luna's annual rabies vaccination is due in 7 days. Book an appointment soon.</div>
+              <div class="notif-time">2 hr ago</div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-icon">📦</div>
+            <div>
+              <div class="notif-title">Order Delivered</div>
+              <div class="notif-desc">Your order #ORD-0042 (Premium Dog Food × 2) has been delivered.</div>
+              <div class="notif-time">Yesterday</div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-icon">🏠</div>
+            <div>
+              <div class="notif-title">Adoption Application Update</div>
+              <div class="notif-desc">Your application for "Rex" has been moved to Under Review status.</div>
+              <div class="notif-time">2 days ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADMIN ── -->
+    <div id="screen-admin" class="screen">
+      <div class="page-header">
+        <div class="page-title">Admin Panel</div>
+        <div class="page-sub">Platform activity monitoring and management</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon">👤</div>
+          <div class="stat-value">952</div>
+          <div class="stat-label">Pet Owners</div>
+          <div class="stat-delta up">↑ 9 today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🩺</div>
+          <div class="stat-value">112</div>
+          <div class="stat-label">Veterinarians</div>
+          <div class="stat-delta up">↑ 2 today</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value">1,197</div>
+          <div class="stat-label">Active Accounts</div>
+          <div class="stat-delta up">↑ 93%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-value">87</div>
+          <div class="stat-label">Inactive Accounts</div>
+          <div class="stat-delta down">7%</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Pending Vet Verifications</span>
+            <span class="badge badge-pending">3 pending</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Veterinarian</th><th>Specialization</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="user-cell"><div class="avatar av-blue">KM</div><div><div class="user-name">Dr. Karim Mansour</div><div class="user-email">karim.vet@email.com</div></div></div></td>
+                  <td>Surgery</td>
+                  <td>
+                    <button class="btn btn-primary btn-sm" style="margin-right:4px">✓ Verify</button>
+                    <button class="btn btn-danger btn-sm">✗ Reject</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="avatar av-green">NB</div><div><div class="user-name">Dr. Nour Baklouti</div><div class="user-email">nour.vet@email.com</div></div></div></td>
+                  <td>Dermatology</td>
+                  <td>
+                    <button class="btn btn-primary btn-sm" style="margin-right:4px">✓ Verify</button>
+                    <button class="btn btn-danger btn-sm">✗ Reject</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Reported Accounts</span>
+            <span class="badge badge-rejected">5 reports</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>User</th><th>Reason</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="user-cell"><div class="avatar av-red">MA</div><div><div class="user-name">Mohamed Amri</div></div></div></td>
+                  <td><span style="font-size:12px; color:var(--text-soft)">Spam content</span></td>
+                  <td><button class="btn btn-danger btn-sm">Deactivate</button></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="avatar av-orange">FB</div><div><div class="user-name">Fares Ben Slama</div></div></div></td>
+                  <td><span style="font-size:12px; color:var(--text-soft)">Fake vet profile</span></td>
+                  <td><button class="btn btn-danger btn-sm">Deactivate</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VETS ── -->
+    <div id="screen-vets" class="screen">
+      <div class="page-header">
+        <div class="page-title">Veterinarians</div>
+        <div class="page-sub">All registered veterinary professionals</div>
+      </div>
+
+      <div class="filter-bar">
+        <input class="search-input" type="text" placeholder="🔍  Search by name or specialization…" />
+        <select class="filter-select">
+          <option>All Specializations</option>
+          <option>Surgery</option>
+          <option>Dermatology</option>
+          <option>Cardiology</option>
+          <option>General Practice</option>
+        </select>
+        <select class="filter-select">
+          <option>All Status</option>
+          <option>Verified</option>
+          <option>Pending</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Veterinarian</th><th>Specialization</th><th>Clinic</th><th>Location</th><th>Verification</th><th>Ambulance</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="user-cell"><div class="avatar av-green">LC</div><div><div class="user-name">Dr. Leila Charef</div><div class="user-email">leila.vet@email.com</div></div></div></td>
+                <td>Emergency Medicine</td>
+                <td>VetClinic Tunis</td>
+                <td>Tunis Centre</td>
+                <td><span class="badge badge-verified">Verified ✓</span></td>
+                <td><span class="badge badge-emergency">🚑 Dispatched</span></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="avatar av-blue">KM</div><div><div class="user-name">Dr. Karim Mansour</div><div class="user-email">karim.vet@email.com</div></div></div></td>
+                <td>Surgery</td>
+                <td>Animal Care Center</td>
+                <td>La Marsa</td>
+                <td><span class="badge badge-pending">Pending</span></td>
+                <td><span class="badge badge-active">Available</span></td>
+              </tr>
+              <tr>
+                <td><div class="user-cell"><div class="avatar av-green">NB</div><div><div class="user-name">Dr. Nour Baklouti</div><div class="user-email">nour.vet@email.com</div></div></div></td>
+                <td>Dermatology</td>
+                <td>PetDerm Clinic</td>
+                <td>Ariana</td>
+                <td><span class="badge badge-pending">Pending</span></td>
+                <td><span class="badge badge-active">Available</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PET STORE ── -->
+    <div id="screen-store" class="screen">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Pet Store</div>
+          <div class="page-sub">Browse and order products for your pets</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-ghost btn-sm">🛒 Cart (2)</button>
+          <button class="btn btn-primary btn-sm">View Orders</button>
+        </div>
+      </div>
+
+      <!-- AI Recommendations Panel -->
+      <div class="ai-rec-panel">
+        <div class="ai-rec-header">
+          <div class="ai-rec-icon">🤖</div>
+          <div>
+            <div class="ai-rec-title">AI Recommendations — Personalized for Your Pets</div>
+            <div class="ai-rec-sub">RAG pipeline · Based on Milo & Luna's health records, breed, age, and purchase history</div>
+          </div>
+          <button class="btn btn-sm" style="margin-left:auto; background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.3)">🔄 Refresh</button>
+        </div>
+
+        <!-- Pipeline visualization -->
+        <div class="ai-rec-pipeline">
+          <div class="pipeline-step">🐕 Pet Profile<br><span style="opacity:.6; font-weight:400">breed, age, health</span></div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-step">📚 RAG Retrieval<br><span style="opacity:.6; font-weight:400">pgvector search</span></div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-step">🧠 Mistral 7B<br><span style="opacity:.6; font-weight:400">rank & explain</span></div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-step">✅ Top 3 Picks<br><span style="opacity:.6; font-weight:400">confidence scored</span></div>
+        </div>
+
+        <div class="rec-cards">
+          <div class="rec-card">
+            <div class="rec-emoji">🦴</div>
+            <div class="rec-name">Joint Care Chews — Large Breed</div>
+            <div class="rec-reason">Milo is a 3-year-old Golden Retriever — large breeds benefit from glucosamine supplementation starting age 3.</div>
+            <div class="rec-score">🤖 Match score: 97%</div>
+            <div class="rec-price">32.500 TND</div>
+          </div>
+          <div class="rec-card">
+            <div class="rec-emoji">🐟</div>
+            <div class="rec-name">Omega-3 Fish Oil Drops</div>
+            <div class="rec-reason">Luna's last checkup noted dry coat. Omega-3 supplements are clinically recommended for Persian cats.</div>
+            <div class="rec-score">🤖 Match score: 93%</div>
+            <div class="rec-price">18.900 TND</div>
+          </div>
+          <div class="rec-card">
+            <div class="rec-emoji">🪮</div>
+            <div class="rec-name">Deshedding Brush — Double Coat</div>
+            <div class="rec-reason">Golden Retrievers shed heavily. Based on your purchase history, your last brush was 14 months ago.</div>
+            <div class="rec-score">🤖 Match score: 88%</div>
+            <div class="rec-price">24.000 TND</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <input class="search-input" type="text" placeholder="🔍  Search products…" />
+        <select class="filter-select">
+          <option>All Categories</option>
+          <option>Food</option>
+          <option>Toys</option>
+          <option>Accessories</option>
+          <option>Health & Care</option>
+          <option>Grooming</option>
+        </select>
+        <select class="filter-select">
+          <option>All Pets</option>
+          <option>🐕 For Dogs</option>
+          <option>🐈 For Cats</option>
+        </select>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="products-grid">
+        <div class="product-card">
+          <div class="product-img">🦴</div>
+          <div class="product-body">
+            <div class="product-name">Joint Care Chews — Large Breed</div>
+            <div class="product-cat">Health & Care · For Dogs</div>
+            <div class="ai-rec-badge">🤖 AI Recommended for Milo</div>
+            <div class="product-price">32.500 TND</div>
+            <div class="product-stock">✅ In stock (48 units)</div>
+            <div class="product-actions">
+              <button class="btn btn-primary btn-sm" style="flex:1">+ Cart</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+        <div class="product-card">
+          <div class="product-img">🐟</div>
+          <div class="product-body">
+            <div class="product-name">Omega-3 Fish Oil Drops</div>
+            <div class="product-cat">Health & Care · For Cats</div>
+            <div class="ai-rec-badge">🤖 AI Recommended for Luna</div>
+            <div class="product-price">18.900 TND</div>
+            <div class="product-stock">✅ In stock (120 units)</div>
+            <div class="product-actions">
+              <button class="btn btn-primary btn-sm" style="flex:1">+ Cart</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+        <div class="product-card">
+          <div class="product-img">🪮</div>
+          <div class="product-body">
+            <div class="product-name">Deshedding Brush — Double Coat</div>
+            <div class="product-cat">Grooming · For Dogs</div>
+            <div class="ai-rec-badge">🤖 AI Recommended for Milo</div>
+            <div class="product-price">24.000 TND</div>
+            <div class="product-stock">✅ In stock (35 units)</div>
+            <div class="product-actions">
+              <button class="btn btn-primary btn-sm" style="flex:1">+ Cart</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+        <div class="product-card">
+          <div class="product-img">🎾</div>
+          <div class="product-body">
+            <div class="product-name">Interactive Fetch Ball Set</div>
+            <div class="product-cat">Toys · For Dogs</div>
+            <div class="product-price">12.000 TND</div>
+            <div class="product-stock">✅ In stock (200 units)</div>
+            <div class="product-actions">
+              <button class="btn btn-primary btn-sm" style="flex:1">+ Cart</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+        <div class="product-card">
+          <div class="product-img">🍗</div>
+          <div class="product-body">
+            <div class="product-name">Premium Dry Dog Food 5kg</div>
+            <div class="product-cat">Food · For Dogs</div>
+            <div class="product-price">45.000 TND</div>
+            <div class="product-stock">✅ In stock (80 units)</div>
+            <div class="product-actions">
+              <button class="btn btn-primary btn-sm" style="flex:1">+ Cart</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+        <div class="product-card">
+          <div class="product-img">🧴</div>
+          <div class="product-body">
+            <div class="product-name">Cat Shampoo — Sensitive Skin</div>
+            <div class="product-cat">Grooming · For Cats</div>
+            <div class="product-price">9.500 TND</div>
+            <div class="product-stock">⚠️ Low stock (6 units)</div>
+            <div class="product-actions">
+              <button class="btn btn-primary btn-sm" style="flex:1">+ Cart</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AI ENGINE (RAG + MLflow) ── -->
+    <div id="screen-aiengine" class="screen">
+      <div class="page-header">
+        <div>
+          <div class="page-title">AI Engine</div>
+          <div class="page-sub">RAG pipeline · MLflow chunking experiments · Triage monitoring</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="runChunkingExperiment()">▶ Run Experiment</button>
+      </div>
+
+      <div class="mlflow-hero">
+        <div class="mlflow-icon">🧪</div>
+        <div>
+          <div style="font-size:22px; font-weight:800;">MLflow Experiment Tracker</div>
+          <div style="font-size:14px; opacity:.8; margin-top:4px;">Experiment: <strong>pawly-vet-rag-chunking</strong> · 6 runs completed · Best config identified</div>
+        </div>
+      </div>
+
+      <!-- Metrics Summary -->
+      <div class="metric-row">
+        <div class="metric-card">
+          <div class="metric-val">300</div>
+          <div class="metric-label">Best Chunk Size (tokens)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">80%</div>
+          <div class="metric-label">Context Hit Rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">0.79</div>
+          <div class="metric-label">Avg Retrieval Score</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">2.3s</div>
+          <div class="metric-label">Avg Triage Latency</div>
+        </div>
+      </div>
+
+      <!-- RAG Pipeline -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">🔗 RAG Pipeline Architecture</span></div>
+        <div class="rag-pipeline">
+          <div class="rag-step">
+            <div class="rag-step-icon">📝</div>
+            <div class="rag-step-title">Symptom Input</div>
+            <div class="rag-step-desc">Text or voice from pet owner (10–2000 chars)</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-step">
+            <div class="rag-step-icon">🔢</div>
+            <div class="rag-step-title">Embed</div>
+            <div class="rag-step-desc">MiniLM-L6-v2<br>384-dim vector</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-step">
+            <div class="rag-step-icon">🗄️</div>
+            <div class="rag-step-title">pgvector Search</div>
+            <div class="rag-step-desc">Top-3 vet knowledge chunks retrieved</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-step">
+            <div class="rag-step-icon">🧠</div>
+            <div class="rag-step-title">Mistral 7B</div>
+            <div class="rag-step-desc">Prompt + context → EMERGENCY / URGENT / NORMAL</div>
+          </div>
+          <div class="rag-arrow">→</div>
+          <div class="rag-step" style="border-top-color: var(--success);">
+            <div class="rag-step-icon">📊</div>
+            <div class="rag-step-title">MLflow Log</div>
+            <div class="rag-step-desc">level, confidence, latency, chunk_config tracked</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Experiment Results Table -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📋 Chunking Experiment Results</span>
+          <span class="badge badge-verified">6 runs</span>
+        </div>
+        <div class="exp-table-wrap">
+          <table class="exp-table" id="expTable">
+            <thead>
+              <tr>
+                <th>Run Name</th>
+                <th>Chunk Size</th>
+                <th>Overlap</th>
+                <th>k Retrieved</th>
+                <th>Total Chunks</th>
+                <th>Hit Rate</th>
+                <th>Avg Score</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>chunk_100_overlap_10</td>
+                <td>100</td><td>10</td><td>3</td><td>312</td>
+                <td><div class="bar-wrap"><div class="bar" style="width:40px; background:#FF4757"></div><span class="bar-val">40%</span></div></td>
+                <td>0.61</td>
+                <td><span class="badge badge-inactive">Poor</span></td>
+              </tr>
+              <tr>
+                <td>chunk_200_overlap_20</td>
+                <td>200</td><td>20</td><td>3</td><td>178</td>
+                <td><div class="bar-wrap"><div class="bar" style="width:60px; background:#FF6B35"></div><span class="bar-val">60%</span></div></td>
+                <td>0.71</td>
+                <td><span class="badge badge-pending">Fair</span></td>
+              </tr>
+              <tr class="winner">
+                <td>⭐ chunk_300_overlap_50</td>
+                <td>300</td><td>50</td><td>3</td><td>124</td>
+                <td><div class="bar-wrap"><div class="bar" style="width:80px; background:#2ED573"></div><span class="bar-val">80%</span></div></td>
+                <td>0.79</td>
+                <td><span class="badge badge-active">Best ✓</span></td>
+              </tr>
+              <tr>
+                <td>chunk_500_overlap_50</td>
+                <td>500</td><td>50</td><td>3</td><td>82</td>
+                <td><div class="bar-wrap"><div class="bar" style="width:60px; background:#FF6B35"></div><span class="bar-val">60%</span></div></td>
+                <td>0.68</td>
+                <td><span class="badge badge-pending">Fair</span></td>
+              </tr>
+              <tr>
+                <td>chunk_300_overlap_50_k5</td>
+                <td>300</td><td>50</td><td>5</td><td>124</td>
+                <td><div class="bar-wrap"><div class="bar" style="width:80px; background:#2ED573"></div><span class="bar-val">80%</span></div></td>
+                <td>0.77</td>
+                <td><span class="badge badge-verified">Good</span></td>
+              </tr>
+              <tr>
+                <td>chunk_300_overlap_100</td>
+                <td>300</td><td>100</td><td>3</td><td>110</td>
+                <td><div class="bar-wrap"><div class="bar" style="width:80px; background:#2ED573"></div><span class="bar-val">80%</span></div></td>
+                <td>0.78</td>
+                <td><span class="badge badge-verified">Good</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:14px; padding:12px 16px; background:var(--success-light); border-radius:10px; font-size:13px; color:#1A8A44; font-weight:600;">
+          ✅ Winner: <strong>chunk_size=300, overlap=50, k=3</strong> — Hit rate improved by <strong>+40%</strong> vs naive chunking (100 tokens). Deployed to production pgvector.
+        </div>
+      </div>
+
+      <!-- Live Triage Log -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📡 Live Triage Log (MLflow)</span>
+          <span class="badge badge-active" id="liveStatus">● Live</span>
+        </div>
+        <div class="table-wrap">
+          <table id="triageLog">
+            <thead>
+              <tr><th>Time</th><th>Pet</th><th>Symptom (truncated)</th><th>Level</th><th>Confidence</th><th>Latency</th><th>Chunks Used</th></tr>
+            </thead>
+            <tbody id="triageLogBody">
+              <tr>
+                <td>14:32:07</td><td>🐕 Milo (Dog)</td>
+                <td>collapsed, pale gums, breathing fast…</td>
+                <td><span class="badge badge-emergency">EMERGENCY</span></td>
+                <td>94%</td><td>2.3s</td><td>3</td>
+              </tr>
+              <tr>
+                <td>13:15:44</td><td>🐈 Luna (Cat)</td>
+                <td>vomiting twice, not eating…</td>
+                <td><span class="badge badge-urgent">URGENT</span></td>
+                <td>87%</td><td>1.9s</td><td>3</td>
+              </tr>
+              <tr>
+                <td>12:04:11</td><td>🐕 Buddy (Dog)</td>
+                <td>scratching ear occasionally, no pain…</td>
+                <td><span class="badge badge-normal">NORMAL</span></td>
+                <td>91%</td><td>1.4s</td><td>2</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADOPTION FEED ── -->
+    <div id="screen-adopt" class="screen">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Adopt a Pet</div>
+          <div class="page-sub">Find your perfect match — AI recommends animals that fit your lifestyle</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-ghost btn-sm">❤️ Saved (3)</button>
+          <button class="btn btn-primary btn-sm">+ Post for Adoption</button>
+        </div>
+      </div>
+
+      <!-- Hero -->
+      <div class="adopt-hero">
+        <div class="adopt-hero-icon">🏠</div>
+        <div>
+          <div style="font-size:22px; font-weight:800;">Find Your Perfect Companion</div>
+          <div style="font-size:14px; opacity:.85; margin-top:4px;">Describe yourself or your lifestyle — AI matches you with animals from our database using RAG + semantic similarity</div>
+        </div>
+      </div>
+
+      <!-- AI Match Panel -->
+      <div class="match-panel">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+          <div style="font-size:28px;">🤖</div>
+          <div>
+            <div style="font-size:16px; font-weight:800;">AI Pet Match Engine</div>
+            <div style="font-size:12px; opacity:.7; margin-top:2px;">Describe yourself → AI finds animals that match your personality, living space, and experience level</div>
+          </div>
+          <div id="matchSpinner" style="margin-left:auto; display:none; font-size:20px; animation:spin 1s linear infinite;">⏳</div>
+        </div>
+
+        <div class="match-input-row">
+          <textarea class="match-textarea" id="matchDesc" placeholder="Example: I live in a small apartment in Tunis, I work from home, I'm calm and introverted, I want a low-energy pet that's good with kids…"></textarea>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn btn-success" onclick="runMatch()" style="white-space:nowrap">🔍 Find My Match</button>
+            <select id="matchFilter" style="padding:8px 12px; border-radius:10px; border:1.5px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:#fff; font-size:13px; cursor:pointer;">
+              <option value="all">All animals</option>
+              <option value="dog">🐕 Dogs</option>
+              <option value="cat">🐈 Cats</option>
+              <option value="rabbit">🐇 Rabbits</option>
+              <option value="bird">🦜 Birds</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- AI Match Results -->
+        <div id="matchResultsWrap" style="display:none">
+          <div style="font-size:12px; opacity:.6; margin-bottom:12px; font-weight:600;">
+            🧠 RAG retrieved from <strong>47 adoption profiles</strong> · Embedding model: MiniLM-L6-v2 · Ranked by semantic similarity
+          </div>
+          <div class="match-results" id="matchResults"></div>
+        </div>
+        <div id="matchPlaceholder" style="text-align:center; padding:20px; opacity:.5; font-size:14px;">
+          👆 Describe your lifestyle above and click "Find My Match" to get AI-powered animal recommendations
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <input class="search-input" type="text" placeholder="🔍  Search by name, breed, or location…" />
+        <select class="filter-select">
+          <option>All Species</option>
+          <option>🐕 Dogs</option>
+          <option>🐈 Cats</option>
+          <option>🐇 Rabbits</option>
+          <option>🦜 Birds</option>
+        </select>
+        <select class="filter-select">
+          <option>All Locations</option>
+          <option>Tunis</option>
+          <option>Ariana</option>
+          <option>Sousse</option>
+          <option>Sfax</option>
+        </select>
+        <select class="filter-select">
+          <option>All Status</option>
+          <option>Available</option>
+          <option>Pending</option>
+        </select>
+      </div>
+
+      <!-- Feed -->
+      <div class="adopt-feed">
+        <div class="adopt-card">
+          <div class="adopt-card-img bg-orange">
+            🐕
+            <span class="adopt-status-badge adopt-status-available">Available</span>
+          </div>
+          <div class="adopt-card-body">
+            <div class="adopt-animal-name">Rocky</div>
+            <div class="adopt-animal-info">Labrador Mix · 2 years · Male</div>
+            <div class="adopt-location">📍 Tunis · Posted by VetClinic Nord</div>
+            <div class="adopt-tags">
+              <span class="adopt-tag">Vaccinated</span>
+              <span class="adopt-tag">Neutered</span>
+              <span class="adopt-tag">Good with kids</span>
+            </div>
+            <div class="adopt-ai-match">🤖 98% match for active families</div>
+            <div class="adopt-actions">
+              <button class="btn btn-success btn-sm" style="flex:1">Apply to Adopt</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="adopt-card">
+          <div class="adopt-card-img bg-purple">
+            🐈
+            <span class="adopt-status-badge adopt-status-available">Available</span>
+          </div>
+          <div class="adopt-card-body">
+            <div class="adopt-animal-name">Bella</div>
+            <div class="adopt-animal-info">Domestic Shorthair · 1 year · Female</div>
+            <div class="adopt-location">📍 Ariana · Posted by Shelter Ariana</div>
+            <div class="adopt-tags">
+              <span class="adopt-tag">Vaccinated</span>
+              <span class="adopt-tag">Indoor cat</span>
+              <span class="adopt-tag">Calm</span>
+            </div>
+            <div class="adopt-ai-match">🤖 95% match for apartment dwellers</div>
+            <div class="adopt-actions">
+              <button class="btn btn-success btn-sm" style="flex:1">Apply to Adopt</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="adopt-card">
+          <div class="adopt-card-img bg-blue">
+            🐇
+            <span class="adopt-status-badge adopt-status-available">Available</span>
+          </div>
+          <div class="adopt-card-body">
+            <div class="adopt-animal-name">Snowball</div>
+            <div class="adopt-animal-info">Holland Lop · 8 months · Male</div>
+            <div class="adopt-location">📍 La Marsa · Private owner</div>
+            <div class="adopt-tags">
+              <span class="adopt-tag">Vaccinated</span>
+              <span class="adopt-tag">Very gentle</span>
+              <span class="adopt-tag">Kid-friendly</span>
+            </div>
+            <div class="adopt-ai-match">🤖 91% match for quiet homes</div>
+            <div class="adopt-actions">
+              <button class="btn btn-success btn-sm" style="flex:1">Apply to Adopt</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="adopt-card">
+          <div class="adopt-card-img bg-yellow">
+            🦜
+            <span class="adopt-status-badge adopt-status-pending">Pending</span>
+          </div>
+          <div class="adopt-card-body">
+            <div class="adopt-animal-name">Kiwi</div>
+            <div class="adopt-animal-info">African Grey Parrot · 3 years · Unknown</div>
+            <div class="adopt-location">📍 Sousse · Bird Sanctuary</div>
+            <div class="adopt-tags">
+              <span class="adopt-tag">Talks</span>
+              <span class="adopt-tag">Social</span>
+              <span class="adopt-tag">Experienced owner req.</span>
+            </div>
+            <div class="adopt-actions">
+              <button class="btn btn-ghost btn-sm" style="flex:1; opacity:.6" disabled>Application Pending</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="adopt-card">
+          <div class="adopt-card-img bg-green">
+            🐕
+            <span class="adopt-status-badge adopt-status-available">Available</span>
+          </div>
+          <div class="adopt-card-body">
+            <div class="adopt-animal-name">Zara</div>
+            <div class="adopt-animal-info">Border Collie Mix · 4 years · Female</div>
+            <div class="adopt-location">📍 Sfax · SPA Sfax</div>
+            <div class="adopt-tags">
+              <span class="adopt-tag">Vaccinated</span>
+              <span class="adopt-tag">Very active</span>
+              <span class="adopt-tag">Needs space</span>
+            </div>
+            <div class="adopt-ai-match">🤖 89% match for outdoor lovers</div>
+            <div class="adopt-actions">
+              <button class="btn btn-success btn-sm" style="flex:1">Apply to Adopt</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="adopt-card">
+          <div class="adopt-card-img bg-orange">
+            🐈
+            <span class="adopt-status-badge adopt-status-available">Available</span>
+          </div>
+          <div class="adopt-card-body">
+            <div class="adopt-animal-name">Oliver</div>
+            <div class="adopt-animal-info">Maine Coon · 2 years · Male</div>
+            <div class="adopt-location">📍 Tunis · Private rescue</div>
+            <div class="adopt-tags">
+              <span class="adopt-tag">Vaccinated</span>
+              <span class="adopt-tag">Dog-friendly</span>
+              <span class="adopt-tag">Playful</span>
+            </div>
+            <div class="adopt-ai-match">🤖 85% match for multi-pet homes</div>
+            <div class="adopt-actions">
+              <button class="btn btn-success btn-sm" style="flex:1">Apply to Adopt</button>
+              <button class="btn btn-ghost btn-sm">♡</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ── Screen switching ──────────────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    // highlight nav
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) {
+        n.classList.add('active');
+      }
+    });
+    // reset emergency if re-entering
+    if (id === 'emergency') resetEmergency(false);
+  }
+
+  // ── Character counter ──────────────────────────────────────────
+  const ta = document.getElementById('symptomText');
+  const cc = document.getElementById('charCount');
+  if (ta) {
+    ta.addEventListener('input', () => {
+      cc.textContent = ta.value.length + ' / 2000';
+    });
+  }
+
+  // ── AI Triage simulation ───────────────────────────────────────
+  function runAITriage() {
+    const text = ta ? ta.value.trim() : '';
+    if (text.length < 10) {
+      alert('Please describe the symptoms in at least 10 characters so AI can analyze them.');
+      return;
+    }
+
+    // Update step 2 → analyzing
+    setStep(2, 'step-active', '⏳ Analyzing…');
+    setStep(3, '', 'Waiting…');
+    setStep(4, '', 'Waiting…');
+
+    // Hide any existing result
+    document.getElementById('aiResultSection').style.display = 'none';
+
+    // Simulate 1.8s AI response
+    setTimeout(() => {
+      setStep(2, 'step-done', '✓ Input received');
+      setStep(3, 'step-alert', '🚨 EMERGENCY detected');
+      // Simulate dispatch
+      setTimeout(() => {
+        setStep(4, 'step-dispatched', '✓ Ambulance dispatched');
+        document.getElementById('aiResultSection').style.display = 'block';
+        document.getElementById('aiResultSection').scrollIntoView({ behavior: 'smooth' });
+      }, 800);
+    }, 1800);
+  }
+
+  function setStep(n, cls, statusText) {
+    const el = document.getElementById('step' + n);
+    el.className = 'flow-step ' + cls;
+    const st = el.querySelector('.step-status');
+    if (st) {
+      st.textContent = statusText;
+      if (cls === 'step-done')       st.style.color = 'var(--success)';
+      else if (cls === 'step-active' || cls === 'step-alert') st.style.color = cls === 'step-alert' ? 'var(--danger)' : 'var(--primary)';
+      else if (cls === 'step-dispatched') st.style.color = 'var(--success)';
+      else st.style.color = 'var(--text-soft)';
+    }
+  }
+
+  function resetEmergency(clearText = true) {
+    document.getElementById('aiResultSection').style.display = 'none';
+    setStep(1, 'step-done', '✓ Milo selected');
+    setStep(2, 'step-active', '● In progress…');
+    setStep(3, '', 'Waiting…');
+    setStep(4, '', 'Waiting…');
+    if (clearText && ta) { ta.value = ''; cc.textContent = '0 / 2000'; }
+  }
+
+  // ── AI Pet Match Engine ───────────────────────────────────────
+  const ANIMALS = [
+    { emoji:'🐕', name:'Rocky',    breed:'Labrador Mix',        age:'2 yrs', species:'dog',
+      tags:['active','family','outdoor','energetic','social'],
+      traits:'Loves walks, very energetic, great with children and other pets. Needs space to run.',
+      location:'Tunis', match:0, reason:'' },
+    { emoji:'🐈', name:'Bella',    breed:'Domestic Shorthair',  age:'1 yr',  species:'cat',
+      tags:['calm','indoor','quiet','apartment','independent'],
+      traits:'Very calm indoor cat, loves to sleep and cuddle. Perfect for small apartments. Low maintenance.',
+      location:'Ariana', match:0, reason:'' },
+    { emoji:'🐇', name:'Snowball', breed:'Holland Lop',          age:'8 mo',  species:'rabbit',
+      tags:['gentle','quiet','kids','indoor','small space'],
+      traits:'Extremely gentle, ideal for families with children. Quiet, clean, minimal care required.',
+      location:'La Marsa', match:0, reason:'' },
+    { emoji:'🐕', name:'Zara',     breed:'Border Collie Mix',    age:'4 yrs', species:'dog',
+      tags:['active','outdoor','sport','running','experienced'],
+      traits:'Highly intelligent and active. Needs daily exercise and outdoor activities. Best for active owners.',
+      location:'Sfax', match:0, reason:'' },
+    { emoji:'🐈', name:'Oliver',   breed:'Maine Coon',           age:'2 yrs', species:'cat',
+      tags:['playful','social','dogs','multi-pet','curious'],
+      traits:'Sociable large cat, gets along with dogs. Playful and curious. Great for multi-pet households.',
+      location:'Tunis', match:0, reason:'' },
+    { emoji:'🦜', name:'Kiwi',     breed:'African Grey',         age:'3 yrs', species:'bird',
+      tags:['social','talking','experienced','intelligent','companion'],
+      traits:'Talks and mimics speech. Requires experienced owner and daily interaction. Very intelligent.',
+      location:'Sousse', match:0, reason:'' },
+    { emoji:'🐕', name:'Max',      breed:'Golden Retriever',     age:'1 yr',  species:'dog',
+      tags:['family','gentle','training','beginner','patient'],
+      traits:'Sweet-natured young dog, easy to train. Perfect for first-time dog owners and families.',
+      location:'Tunis', match:0, reason:'' },
+    { emoji:'🐈', name:'Nala',     breed:'Siamese',              age:'3 yrs', species:'cat',
+      tags:['vocal','social','indoor','attention','active'],
+      traits:'Very vocal and social, loves attention. Ideal for people who spend time at home.',
+      location:'Ariana', match:0, reason:'' },
+  ];
+
+  // Simple keyword-based semantic scoring (simulates vector similarity)
+  const PROFILE_KEYWORDS = {
+    apartment:   { tags:['indoor','apartment','small space','quiet','calm'], score: 20 },
+    house:       { tags:['outdoor','active','energetic','space'], score: 15 },
+    calm:        { tags:['calm','gentle','quiet','independent'], score: 20 },
+    active:      { tags:['active','energetic','outdoor','sport','running'], score: 20 },
+    kids:        { tags:['kids','family','gentle','patient'], score: 18 },
+    beginner:    { tags:['beginner','gentle','training','patient'], score: 18 },
+    experienced: { tags:['experienced','sport','active','intelligent'], score: 15 },
+    introvert:   { tags:['quiet','calm','independent','indoor'], score: 20 },
+    social:      { tags:['social','playful','attention','companion'], score: 15 },
+    dog:         { tags:['active','family','outdoor'], score: 10 },
+    cat:         { tags:['indoor','calm','independent'], score: 10 },
+    bird:        { tags:['companion','social','talking'], score: 10 },
+    work_home:   { tags:['companion','social','attention','indoor'], score: 15 },
+    small:       { tags:['indoor','apartment','small space'], score: 18 },
+    large:       { tags:['outdoor','active','space'], score: 15 },
+  };
+
+  const REASONS = {
+    dog:    ['Great match for your active lifestyle', 'Perfect family companion based on your description',
+             'Ideal for beginners — very trainable', 'Matches your energy level and living situation'],
+    cat:    ['Low-maintenance — suits your busy schedule', 'Independent nature fits your lifestyle',
+             'Perfect for apartment living as you described', 'Calm temperament matches your personality'],
+    rabbit: ['Low-energy pet ideal for your quiet home', 'Kid-friendly — great for your family situation',
+             'Minimal space needed for your apartment'],
+    bird:   ['Social companion for someone who works from home', 'Intelligent — suits an experienced owner like you'],
+  };
+
+  function scoreAnimal(animal, descLower) {
+    let score = 0;
+    // keyword matching against description
+    for (const [keyword, cfg] of Object.entries(PROFILE_KEYWORDS)) {
+      if (descLower.includes(keyword)) {
+        for (const tag of cfg.tags) {
+          if (animal.tags.includes(tag)) score += cfg.score;
+        }
+      }
+    }
+    // bonus if species mentioned
+    if (descLower.includes(animal.species)) score += 25;
+    if (descLower.includes('apartment') && animal.tags.includes('apartment')) score += 30;
+    if (descLower.includes('child') || descLower.includes('kid')) {
+      if (animal.tags.includes('kids') || animal.tags.includes('family')) score += 25;
+    }
+    if (descLower.includes('work from home') || descLower.includes('home')) {
+      if (animal.tags.includes('companion') || animal.tags.includes('social')) score += 20;
+    }
+    // add some noise so results feel dynamic
+    score += Math.random() * 10;
+    return Math.min(score, 100);
+  }
+
+  function runMatch() {
+    const desc = document.getElementById('matchDesc').value.trim();
+    if (desc.length < 15) {
+      alert('Please describe yourself in at least 15 characters so AI can find your best match.');
+      return;
+    }
+    const filter = document.getElementById('matchFilter').value;
+    const wrap   = document.getElementById('matchResultsWrap');
+    const ph     = document.getElementById('matchPlaceholder');
+    const res    = document.getElementById('matchResults');
+    const spin   = document.getElementById('matchSpinner');
+
+    ph.style.display = 'none';
+    wrap.style.display = 'none';
+    spin.style.display = 'block';
+
+    setTimeout(() => {
+      spin.style.display = 'none';
+      const descLower = desc.toLowerCase();
+
+      // Score all animals
+      let pool = ANIMALS.map(a => ({ ...a, match: scoreAnimal(a, descLower) }));
+      if (filter !== 'all') pool = pool.filter(a => a.species === filter);
+
+      // Sort descending, take top 3
+      pool.sort((a, b) => b.match - a.match);
+      const top3 = pool.slice(0, 3);
+
+      // Normalise to 70–99 range for display
+      const maxScore = top3[0].match;
+      top3.forEach((a, i) => {
+        const pct = Math.round(70 + ((top3.length - i - 1) / top3.length) * 29 + Math.random() * 4);
+        a.displayPct = Math.min(pct, 99);
+        const reasons = REASONS[a.species] || REASONS.dog;
+        a.reason = reasons[Math.floor(Math.random() * reasons.length)];
+      });
+
+      res.innerHTML = top3.map(a => `
+        <div class="match-card" onclick="showScreen('adopt')">
+          <div class="match-animal-emoji">${a.emoji}</div>
+          <div class="match-animal-name">${a.name}</div>
+          <div class="match-animal-breed">${a.breed} · ${a.age} · ${a.location}</div>
+          <div class="match-pct">🤖 ${a.displayPct}% match</div>
+          <div class="match-why">${a.reason} — ${a.traits.substring(0, 80)}…</div>
+          <div class="match-tags">${a.tags.slice(0,3).map(t => `<span class="match-tag">${t}</span>`).join('')}</div>
+        </div>
+      `).join('');
+
+      wrap.style.display = 'block';
+    }, 1600);
+  }
+
+  // Allow Enter key in match textarea
+  document.addEventListener('DOMContentLoaded', () => {
+    const md = document.getElementById('matchDesc');
+    if (md) {
+      md.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); runMatch(); }
+      });
+      // Pre-fill demo text
+      md.value = 'I live in a small apartment in Tunis, I work from home, I am calm and introverted. I want a low-energy pet that does not need much outdoor time.';
+    }
+    if (ta) {
+      ta.value = 'My dog Milo suddenly collapsed, is breathing very fast and his gums look pale. He is not responsive to his name and his body feels limp.';
+      cc.textContent = ta.value.length + ' / 2000';
+    }
+  });
+
+  // ── MLflow experiment simulation ──────────────────────────────
+  let expRunning = false;
+  function runChunkingExperiment() {
+    if (expRunning) return;
+    expRunning = true;
+    const rows = document.querySelectorAll('#expTable tbody tr');
+    rows.forEach(r => r.querySelector('td:last-child').innerHTML = '<span class="badge badge-inactive">Queued</span>');
+
+    rows.forEach((row, i) => {
+      setTimeout(() => {
+        row.querySelector('td:last-child').innerHTML = '<span class="badge badge-pending">Running…</span>';
+        setTimeout(() => {
+          const isWinner = row.classList.contains('winner');
+          const isGood   = row.cells[6].textContent >= '0.77';
+          const isPoor   = row.cells[6].textContent < '0.65';
+          if (isWinner) row.querySelector('td:last-child').innerHTML = '<span class="badge badge-active">Best ✓</span>';
+          else if (isPoor) row.querySelector('td:last-child').innerHTML = '<span class="badge badge-inactive">Poor</span>';
+          else if (isGood) row.querySelector('td:last-child').innerHTML = '<span class="badge badge-verified">Good</span>';
+          else row.querySelector('td:last-child').innerHTML = '<span class="badge badge-pending">Fair</span>';
+          if (i === rows.length - 1) expRunning = false;
+        }, 700);
+      }, i * 900);
+    });
+  }
+
+  // ── Live triage log ticker ────────────────────────────────────
+  const mockLogs = [
+    ['now', '🐕 Rex (Dog)',   'limping on right leg, no swelling…',      'NORMAL',    '88%', '1.6s', '2'],
+    ['now', '🐈 Cleo (Cat)',  'hiding under bed, not eating for 3 days…', 'URGENT',    '85%', '2.1s', '3'],
+    ['now', '🐕 Max (Dog)',   'ate xylitol chewing gum 5 min ago…',       'EMERGENCY', '99%', '1.8s', '3'],
+    ['now', '🐇 Snowy (Rabbit)', 'not moving, cold to touch…',            'EMERGENCY', '96%', '2.0s', '3'],
+  ];
+  let logIdx = 0;
+  setInterval(() => {
+    if (document.getElementById('screen-aiengine') &&
+        document.getElementById('screen-aiengine').classList.contains('active')) {
+      const tbody = document.getElementById('triageLogBody');
+      if (!tbody) return;
+      const entry = mockLogs[logIdx % mockLogs.length];
+      const levelClass = entry[3] === 'EMERGENCY' ? 'badge-emergency' : entry[3] === 'URGENT' ? 'badge-urgent' : 'badge-normal';
+      const now = new Date();
+      const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0') + ':' + now.getSeconds().toString().padStart(2,'0');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${t}</td><td>${entry[1]}</td><td>${entry[2]}</td>
+        <td><span class="badge ${levelClass}">${entry[3]}</span></td>
+        <td>${entry[4]}</td><td>${entry[5]}</td><td>${entry[6]}</td>`;
+      tr.style.animation = 'fadeUp .3s ease';
+      tbody.prepend(tr);
+      if (tbody.children.length > 8) tbody.removeChild(tbody.lastChild);
+      logIdx++;
+    }
+  }, 4000);
+</script>
+</body>
+</html>
