@@ -1,0 +1,30 @@
+- Building...
+
+▲ [WARNING] NG8102: The left side of this nullish coalescing operation does not include 'null' or 'undefined' in its type, therefore the '??' operator can be safely removed. [plugin angular-compiler]
+
+    src/app/features/dashboard/dashboard.component.ts:31:39:
+      31 │ ...      <div class="stat-value">{{ stats['totalUsers'] ?? 0 }}</div>
+         ╵                                     ~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+▲ [WARNING] NG8102: The left side of this nullish coalescing operation does not include 'null' or 'undefined' in its type, therefore the '??' operator can be safely removed. [plugin angular-compiler]
+
+    src/app/features/dashboard/dashboard.component.ts:36:39:
+      36 │ ...   <div class="stat-value">{{ stats['veterinarians'] ?? 0 }}</div>
+         ╵                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+▲ [WARNING] NG8102: The left side of this nullish coalescing operation does not include 'null' or 'undefined' in its type, therefore the '??' operator can be safely removed. [plugin angular-compiler]
+
+    src/app/features/dashboard/dashboard.component.ts:41:39:
+      41 │ ...  <div class="stat-value">{{ stats['activeAccounts'] ?? 0 }}</div>
+         ╵                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+▲ [WARNING] NG8102: The left side of this nullish coalescing operation does not include 'null' or 'undefined' in its type, therefore the '??' operator can be safely removed. [plugin angular-compiler]
+
+    src/app/features/dashboard/dashboard.component.ts:46:39:
+      46 │ ...     <div class="stat-value">{{ stats['pendingVets'] ?? 0 }}</div>
+         ╵                                    ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+

@@ -1,0 +1,17 @@
+{
+  "total": 500,
+  "train": 341,
+  "validation": 68,
+  "test": 91,
+  "train_ratio": 0.7,
+  "val_ratio": 0.15,
+  "test_ratio": 0.15,
+  "seed": 42,
+  "stratification": "relevance_class \u00d7 species",
+  "train_classes": {
+    "highly_relevant": 16,
+    "not_relevant": 59,
+    "relevant": 190,
+    "somewhat": 76
+  }
+}

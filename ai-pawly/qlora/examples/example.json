@@ -1,0 +1,40 @@
+{
+  "id": "example-dog-joint",
+  "user_profile": {
+    "pet_species": ["dog"],
+    "pet_ages": ["senior"],
+    "pet_sizes": ["large"],
+    "budget_tier": "mid",
+    "preferred_categories": ["Health", "Food"],
+    "health_interests": ["joint"]
+  },
+  "interaction_history": [
+    {
+      "product_id": "PROD_0101",
+      "product_name": "Senior Joint Kibble",
+      "signal": "purchase",
+      "weight": 1.0
+    },
+    {
+      "product_id": "PROD_0102",
+      "product_name": "Rope Toy Large",
+      "signal": "view",
+      "weight": 0.3
+    }
+  ],
+  "candidate_product": {
+    "product_id": "PROD_0204",
+    "name": "Glucosamine Chews Large",
+    "category": "Health",
+    "species": "dog",
+    "price_eur": 24.9,
+    "price_tier": "mid",
+    "description": "Daily chew that supports joint comfort for senior large dogs.",
+    "tags": ["joint", "senior", "large"],
+    "age_target": "senior",
+    "size_target": "large",
+    "health_benefits": ["joint-support"],
+    "avg_rating": 4.6,
+    "review_count": 128
+  }
+}

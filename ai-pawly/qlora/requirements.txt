@@ -1,0 +1,19 @@
+# QLoRA stack for the Pawly recommendation adapter.
+# Install in a virtual environment. Python 3.10, 3.11, or 3.12 is the
+# reliable range for PyTorch and bitsandbytes wheels.
+# The 4-bit path needs a CUDA build of torch and bitsandbytes.
+# Without CUDA, train.py uses the explicit fp32 LoRA CPU fallback
+# and does not import bitsandbytes.
+#
+#   python -m venv .venv
+#   .venv\Scripts\activate
+#   pip install -r requirements.txt
+
+torch>=2.4.0
+transformers>=4.46.0,<5.0.0
+peft>=0.13.0,<0.19.0
+bitsandbytes>=0.44.1
+accelerate>=1.0.0,<2.0.0
+safetensors>=0.4.5
+numpy>=1.26.0
+pytest>=8.0.0

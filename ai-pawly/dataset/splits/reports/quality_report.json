@@ -1,0 +1,44 @@
+{
+  "splits": {
+    "train": {
+      "count": 341,
+      "classes": {
+        "relevant": 190,
+        "somewhat": 76,
+        "not_relevant": 59,
+        "highly_relevant": 16
+      }
+    },
+    "validation": {
+      "count": 68,
+      "classes": {
+        "relevant": 39,
+        "not_relevant": 11,
+        "somewhat": 14,
+        "highly_relevant": 4
+      }
+    },
+    "test": {
+      "count": 91,
+      "classes": {
+        "not_relevant": 17,
+        "relevant": 46,
+        "highly_relevant": 5,
+        "somewhat": 23
+      }
+    }
+  },
+  "issues_count": 9,
+  "critical_count": 0,
+  "issues": [
+    "[train] Class 'highly_relevant' underrepresented: 4.7% (16)",
+    "[train] 43 justifications < 5 words (12.6%)",
+    "[train] Only 0.0% cold-start (empty history) examples — add more",
+    "[validation] Class 'highly_relevant' underrepresented: 5.9% (4)",
+    "[validation] 11 justifications < 5 words (16.2%)",
+    "[validation] Only 0.0% cold-start (empty history) examples — add more",
+    "[test] Class 'highly_relevant' underrepresented: 5.5% (5)",
+    "[test] 11 justifications < 5 words (12.1%)",
+    "[test] Only 0.0% cold-start (empty history) examples — add more"
+  ]
+}
