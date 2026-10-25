@@ -55,9 +55,15 @@ import { ProductCardComponent } from '../shared/product-card.component';
       @if (loaded && !loadError && products.length === 0) {
         <div class="card hero-card">
           <div class="hero-icon">🐾</div>
-          <div class="hero-title">No recommendations yet</div>
-          <div class="hero-sub">Add pets to your profile and browse the store to get personalised suggestions</div>
-          <button class="btn btn-primary btn-lg" (click)="load()">Try again</button>
+          <div class="hero-title">Nothing to recommend yet</div>
+          <div class="hero-sub">
+            Add pets to your profile and browse or buy some products first —
+            the engine needs to know your pets and your interests before it can personalise suggestions.
+          </div>
+          <div style="display:flex; gap:12px; margin-top:8px; flex-wrap:wrap; justify-content:center">
+            <a href="/pets/new" class="btn btn-primary btn-lg">🐕 Add a pet</a>
+            <a href="/store/products" class="btn btn-ghost btn-lg">🛍️ Browse the store</a>
+          </div>
         </div>
       }
 

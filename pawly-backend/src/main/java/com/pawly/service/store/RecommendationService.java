@@ -65,8 +65,15 @@ public class RecommendationService {
 
         List<Pet> pets = petRepository.findByOwnerId(user.getId());
         List<ProductPurchaseHistory> purchases = purchaseHistoryRepository.findByUserIdOrderByPurchasedAtDesc(user.getId());
-        ProfileView profile = contextBuilder.profile(pets, RecommendationContextBuilder.pricesOf(purchases));
         List<HistoryView> history = history(user.getId());
+
+        // Without pets or any interaction history the engine has nothing to personalise on.
+        // Return empty so the frontend can prompt the user to add pets / browse the store.
+        if (pets.isEmpty() && history.isEmpty()) {
+            return List.of();
+        }
+
+        ProfileView profile = contextBuilder.profile(pets, RecommendationContextBuilder.pricesOf(purchases));
         Set<String> purchasedIds = purchasedIds(purchases);
         List<Product> candidates = selectCandidates(profile.petSpecies(), purchasedIds);
         if (candidates.isEmpty()) {
