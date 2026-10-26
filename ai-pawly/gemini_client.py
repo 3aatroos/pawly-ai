@@ -64,8 +64,8 @@ def generate_json(
             "topP": _TOP_P,
             "maxOutputTokens": _MAX_OUTPUT_TOKENS,
             "responseMimeType": "application/json",
-            # Keep the JSON inside the output budget. Thoughts would consume the same 800 tokens.
-            "thinkingConfig": {"thinkingBudget": 0},
+            # Gemini 2.5 can switch thinking off. Gemini 3 rejects that budget and uses a level.
+            "thinkingConfig": _thinking_config(model),
         },
     }
     headers = {
@@ -99,8 +99,14 @@ def generate_json(
         raise GeminiError("AI service returned an unexpected error.", 502) from None
 
 
+def _thinking_config(model: str) -> dict[str, Any]:
+    if model.startswith("gemini-2."):
+        return {"thinkingBudget": 0}
+    return {"thinkingLevel": "minimal"}
+
+
 def _model_name() -> str:
-    model = GEMINI_MODEL or "gemini-2.5-flash"
+    model = GEMINI_MODEL or "gemini-3.5-flash-lite"
     if not _MODEL_NAME.fullmatch(model):
         logger.error("GEMINI_MODEL is invalid")
         raise GeminiError("AI service unavailable: GEMINI_MODEL is invalid.", 503)

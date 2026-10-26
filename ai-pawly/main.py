@@ -10,11 +10,8 @@ from models import Base, KnowledgeChunk
 from rag_service import search_relevant_chunks, build_triage_prompt, parse_urgency
 from mistral_client import call_mistral
 from ingestion import ingest_pdf_bytes, seed_knowledge_base
-<<<<<<< HEAD
 from adoption_api import router as adoption_router
 from recommendations.api import install_exception_handlers, router as recommendations_router
-=======
->>>>>>> 8bbbdb2a74dc7243fdcc74b4d1d4082519058a91
 from sqlalchemy.orm import Session as OrmSession
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name)s: %(message)s')
@@ -26,18 +23,12 @@ KNOWLEDGE_DIR = os.path.join(os.path.dirname(__file__), 'knowledge')
 # ── App Setup ────────────────────────────────────────────────────────────────
 app = FastAPI(
     title='ai-pawly',
-<<<<<<< HEAD
     description='Pawly AI microservice: triage RAG, adoption Gemini helpers, and QLoRA product recommendations.',
     version='1.1.0',
 )
 install_exception_handlers(app)
 app.include_router(recommendations_router)
 app.include_router(adoption_router)
-=======
-    description='AI triage microservice for Pawly - RAG + Mistral via Ollama',
-    version='1.0.0',
-)
->>>>>>> 8bbbdb2a74dc7243fdcc74b4d1d4082519058a91
 
 app.add_middleware(
     CORSMiddleware,

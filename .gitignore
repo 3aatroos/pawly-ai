@@ -45,11 +45,7 @@ desktop.ini
 
 # ── Misc ─────────────────────────────────────────────────
 *.log
-<<<<<<< HEAD
 *.tmp
 
 # ── QLoRA artifacts ──────────────────────────────────────
 ai-pawly/qlora/outputs/
-=======
-*.tmp
->>>>>>> 8bbbdb2a74dc7243fdcc74b4d1d4082519058a91

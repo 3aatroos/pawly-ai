@@ -284,9 +284,7 @@ class MatchResponse(BaseModel):
         ids = [item.post_id for item in self.matches]
         if len(ids) != len(set(ids)):
             raise ValueError("duplicate post_id")
-        order = [(-item.score, item.post_id) for item in self.matches]
-        if order != sorted(order):
-            raise ValueError("matches are not sorted")
+        self.matches = sorted(self.matches, key=lambda item: (-item.score, item.post_id))
         return self
 
 

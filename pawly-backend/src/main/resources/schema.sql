@@ -173,8 +173,6 @@ SET @sql = IF(@table_exists = 0,
 );
 
 PREPARE _stmt FROM @sql; EXECUTE _stmt; DEALLOCATE PREPARE _stmt;
-<<<<<<< HEAD
-
 
 -- ═══════════════════════════════════════════════════════════════
 -- Pet Store Module
@@ -468,5 +466,3 @@ CREATE TABLE IF NOT EXISTS adoption_applications (
   CONSTRAINT fk_adoption_application_user FOREIGN KEY (applicant_id) REFERENCES users (id),
   CONSTRAINT fk_adoption_application_reviewer FOREIGN KEY (reviewed_by_id) REFERENCES users (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-=======
->>>>>>> 8bbbdb2a74dc7243fdcc74b4d1d4082519058a91
